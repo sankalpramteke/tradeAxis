@@ -1,0 +1,24 @@
+
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg12
+    container_name: timescaledb
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: tradesphere_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Post
+      POSTGRES_INITDB_ARGS: "--auth-host=md5"
+    volumes:
+      - timescale-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  timescale-data:
