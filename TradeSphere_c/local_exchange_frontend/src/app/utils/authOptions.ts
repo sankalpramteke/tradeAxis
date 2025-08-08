@@ -9,8 +9,8 @@ export const authOptions : NextAuthOptions = {
         CredentialsProvider({
             name: "Credentials",
             credentials: {
-                username: {Label: "Email", type: "text", placeholder: "admin@example.com"},
-                password: {Lable: "Password", type: "text", placeholder: "adminPassword"}
+                username: { label: "Email", type: "text", placeholder: "admin@example.com" },
+                password: { label: "Password", type: "password", placeholder: "adminPassword" }
             },
             async authorize(credentials:Record<"username" | "password", string> | undefined){
                 if(!credentials){
@@ -46,7 +46,7 @@ export const authOptions : NextAuthOptions = {
         }
         )
     ],
-    secret: process.env.NEXAUTH_SECRET || "secret_key" ,
+    secret: process.env.NEXTAUTH_SECRET || "secret_key" ,
     callbacks: {
         async signIn({account, profile}){
             if(account.provider === "google"){

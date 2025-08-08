@@ -144,7 +144,12 @@ export default function SwapUI() {
     
                     <div className="w-full space-y-2 mb-4">
                         <p className="text-xs text-slate-400">Order Value</p>
-                        <input type="text" className="w-full text-2xl text-right px-2 py-2 border-[1px] border-slate-800 rounded-md text-white bg-transparent" value={value | 0} />
+                        <input
+                          type="text"
+                          readOnly
+                          className="w-full text-2xl text-right px-2 py-2 border-[1px] border-slate-800 rounded-md text-white bg-transparent"
+                          value={Number.isFinite(value) ? value : 0}
+                        />
                     </div>
     
                     <div onClick={()=>{
@@ -163,7 +168,17 @@ export default function SwapUI() {
                 </div> : <div className="px-3 w-full flex flex-col justify-between items-center  mb-4">
                     <div className="w-full space-y-2 mb-4">
                         <p className="text-xs text-slate-400">Quantity</p>
-                        <input onChange={(e) => setPrice(parseFloat(e.target.value).toString())} type="text" className="w-full text-2xl text-right px-2 py-2 border-[1px] border-slate-800 rounded-md text-white bg-transparent" value={price || ""} />
+                        <input
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            if (v === "" || /^\d*\.?\d*$/.test(v)) {
+                              setQuantity(v);
+                            }
+                          }}
+                          type="text"
+                          className="w-full text-2xl text-right px-2 py-2 border-[1px] border-slate-800 rounded-md text-white bg-transparent"
+                          value={quantity || ""}
+                        />
                     </div>
                     <div className="px-3 w-full flex justify-end text-xs text-slate-400">
                     {activeTab === "sell" ? (balance[(market as string).split("_")[0]]?.available || 0) + " " + (market as string).split("_")[0] : (balance[(market as string).split("_")[1]]?.available || 0) + " " + (market as string).split("_")[1]}

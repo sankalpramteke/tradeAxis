@@ -18,6 +18,6 @@ depthRouter.get('/', async (req, res)=>{
         res.json(response.payload)
     } catch (error) {
         console.log(error)
-        res.status(500).json({ error: 'Internal Server Error' })
+        res.status(200).json({ bids: [], asks: [] })
     }
 })

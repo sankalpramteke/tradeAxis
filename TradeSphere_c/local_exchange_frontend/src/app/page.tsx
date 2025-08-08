@@ -14,7 +14,7 @@ export default function Home() {
                     </div>
                     <div className="text-md text-slate-400 flex-grow grid grid-cols-4">
                         <div className="mx-2 flex flex-row items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-arrow-down h-4 w-4"><path d="M12 5v14"></path><path d="m19 12-7 7-7-7"></path></svg> Price
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-down h-4 w-4"><path d="M12 5v14"></path><path d="m19 12-7 7-7-7"></path></svg> Price
                         </div>
                         <div className="mx-2 ">
                           Market Cap

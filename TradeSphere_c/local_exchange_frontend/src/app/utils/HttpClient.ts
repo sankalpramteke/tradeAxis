@@ -3,7 +3,27 @@ import {Ticker, Depth, Trade, KLine, Order} from  "./Types"
 // import  { AxiosResponse }  from "axios";
 
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+const rawBase = process.env.NEXT_PUBLIC_BASE_URL && process.env.NEXT_PUBLIC_BASE_URL.trim().length > 0
+  ? process.env.NEXT_PUBLIC_BASE_URL.trim()
+  : 'http://localhost:3000';
+
+let BASE_URL: string;
+try {
+  const u = new URL(rawBase);
+  // force path to /api/v1
+  u.pathname = '/api/v1';
+  u.search = '';
+  u.hash = '';
+  BASE_URL = `${u.origin}${u.pathname}`;
+} catch {
+  // Fallback in case rawBase is not a valid URL
+  BASE_URL = 'http://localhost:3000/api/v1';
+}
+
+// Log once to help diagnose 404s due to wrong base URL
+// eslint-disable-next-line no-console
+console.debug('[HttpClient] rawBase =', rawBase, ' -> normalized BASE_URL =', BASE_URL);
+
 
 export async function getTicker(market: string): Promise<Ticker>{
     try{    
@@ -22,24 +42,35 @@ export async function getTicker(market: string): Promise<Ticker>{
 
 
 export async function getDepth(market: string): Promise<Depth>{
-    const response = await axios.get<Depth>(`${BASE_URL}/depth?symbol=${market}`)
-    
-    return response.data
+    try {
+        const response = await axios.get<Depth>(`${BASE_URL}/depth?symbol=${market}`)
+        return response.data
+    } catch (e) {
+        console.warn('[HttpClient] depth error:', e)
+        return { bids: [], asks: [] }
+    }
 }
 
 export async function getTrades(market: string): Promise<Trade[]>{
     console.log("Market: ", market)
-    const response = await axios.get<{data: Trade[]}>(`${BASE_URL}/trade?symbol=${market}`)
-    return response.data.data
+    try {
+        const response = await axios.get<{data: Trade[]}>(`${BASE_URL}/trade?symbol=${market}`)
+        return response.data.data || []
+    } catch (e) {
+        console.warn('[HttpClient] trades error:', e)
+        return []
+    }
 }
 
 export async function getKlines(market: string, interval: string, startTime: number, endTime: number): Promise<KLine[]> {
-    
-    const response = await axios.get(`${BASE_URL}/kline?symbol=${market}&interval=${interval}&startTime=${startTime}&endTime=${endTime}`);
-    
-    console.log("KLINES: ", response)
-    const data: KLine[] = (response.data as {data: KLine[]}).data;
-    return data.sort((x, y) => (Date.parse(y.time) - Date.parse(x.time)));
+    try {
+        const response = await axios.get(`${BASE_URL}/kline?symbol=${market}&interval=${interval}&startTime=${startTime}&endTime=${endTime}`);
+        const data: KLine[] = (response.data as {data: KLine[]}).data || [];
+        return data.sort((x, y) => (Date.parse(y.time) - Date.parse(x.time)));
+    } catch (e) {
+        console.warn('[HttpClient] klines error:', e)
+        return []
+    }
 }
 
 export async function postOrder(market: string, price: string, quantity: string, side: string, userId: string){
@@ -70,24 +101,31 @@ export async function getOpenOrders(market: string, userId: string){
 }
 
 export async function getBalance(userId: string){
-    
-    const url = `${BASE_URL}/balance?userId=${userId}`;
-    const response = await axios.get(url);
-    return response.data || {};
+    try {
+        const url = `${BASE_URL}/balance?userId=${userId}`;
+        const response = await axios.get(url);
+        return response.data || {};
+    } catch (e) {
+        console.warn('[HttpClient] balance error:', e)
+        return {}
+    }
 }
 
 
 export async function postOnRamp(userId: string, amount: number){
-    const url = `${BASE_URL}/balance/onRamp`
-    const data = {
-        userId,
-        amount: amount.toString()
-    }
-
-    const response= await axios.post(url, data)
-    if(response.status === 200){
-        return (response.data as {balance: number | string}).balance
-    } else {
+    try {
+        const url = `${BASE_URL}/balance/onRamp`
+        const data = {
+            userId,
+            amount: amount.toString()
+        }
+        const response= await axios.post(url, data)
+        if(response.status === 200){
+            return (response.data as {balance: number | string}).balance
+        }
+        return null
+    } catch (e) {
+        console.warn('[HttpClient] onRamp error:', e)
         return null
     }
 }
