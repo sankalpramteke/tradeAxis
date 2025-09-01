@@ -22,6 +22,7 @@ export default function MarketBar({ symbol: market }: { symbol: string }) {
             setTicker(data)
         })
          SignallingManager.getInstance().registerCallback("ticker", function(data: Partial<Ticker>){
+            console.debug('[MarketBar] ticker update for', market, data)
             setTicker(prevTicker => {
                 return {
                     firstPrice: data?.firstPrice ?? prevTicker?.firstPrice ?? '',
@@ -38,10 +39,23 @@ export default function MarketBar({ symbol: market }: { symbol: string }) {
             })
          }, `TICKER-${market}`)
          SignallingManager.getInstance().sendMessage({"method": "SUBSCRIBE",  "params": [`ticker.${market}`]})
+         // Also subscribe to depth to ensure synthesized ticker fires even if book component is not mounted
+         SignallingManager.getInstance().sendMessage({"method": "SUBSCRIBE",  "params": [`depth.${market}`]})
+         // Additionally, react to depth directly as a fallback
+         SignallingManager.getInstance().registerCallback("depth", function(data: {bids: string[][], asks: string[][]}){
+            const bestBid = Array.isArray(data.bids) && data.bids.length>0 ? parseFloat(data.bids[0][0]) : NaN
+            const bestAsk = Array.isArray(data.asks) && data.asks.length>0 ? parseFloat(data.asks[0][0]) : NaN
+            const mid = (!isNaN(bestBid) && !isNaN(bestAsk)) ? (bestBid+bestAsk)/2 : (!isNaN(bestBid) ? bestBid : (!isNaN(bestAsk) ? bestAsk : NaN))
+            if(!isNaN(mid)){
+                setTicker(prev => ({ ...prev, lastPrice: String(mid) }))
+            }
+         }, `DEPTH-${market}-MBAR`)
 
          return ()=>{
             SignallingManager.getInstance().derigisterCallback("ticker", `TICKER-${market}`)
          SignallingManager.getInstance().sendMessage({"method": "UNSUBSCRIBE",  "params": [`ticker.${market}`]})
+         SignallingManager.getInstance().sendMessage({"method": "UNSUBSCRIBE",  "params": [`depth.${market}`]})
+         SignallingManager.getInstance().derigisterCallback("depth", `DEPTH-${market}-MBAR`)
 
          }
     }, [market])

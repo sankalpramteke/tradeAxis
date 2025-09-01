@@ -2,53 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  /* Binance-like dark palette */
-  --background: 222 22% 6%;        /* #0b0e11 */
-  --foreground: 210 20% 96%;       /* near-white */
-  --card: 222 22% 8%;              /* panel bg */
-  --card-foreground: 210 20% 96%;
-  --popover: 222 22% 8%;
-  --popover-foreground: 210 20% 96%;
-  --primary: 48 100% 50%;          /* Binance yellow */
-  --primary-foreground: 0 0% 0%;
-  --secondary: 222 16% 14%;
-  --secondary-foreground: 210 20% 96%;
-  --muted: 222 16% 16%;
-  --muted-foreground: 214 16% 75%;
-  --accent: 222 16% 16%;
-  --accent-foreground: 210 20% 96%;
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 210 20% 98%;
-  --border: 222 16% 18%;
-  --input: 222 16% 18%;
-  --ring: 48 100% 50%;
-  --radius: 8px;
 
-  /* Trading colors */
-  --buy: 150 70% 45%;  /* green */
-  --sell: 0 80% 55%;   /* red */
-}
 
-@layer base {
-  * { @apply border-border; }
-  html, body { height: 100%; }
-  body {
-    @apply bg-background text-foreground antialiased;
+  body::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, and Opera */
   }
-}
 
-/* Scrollbars hidden in critical panes */
-body::-webkit-scrollbar { display: none; }
-#depth::-webkit-scrollbar { display: none; }
-
-/* Utility helpers */
-.card {
-  @apply bg-card text-card-foreground rounded-lg border border-border;
-}
-.panel {
-  @apply bg-card/60 backdrop-blur border border-border rounded-md;
-}
-.header-glass {
-  @apply bg-card/40 backdrop-blur shadow-header border-b border-border;
-}
+  #depth::-webkit-scrollbar{
+    display: none;
+  }

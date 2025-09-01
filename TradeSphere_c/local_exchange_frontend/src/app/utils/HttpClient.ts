@@ -3,26 +3,18 @@ import {Ticker, Depth, Trade, KLine, Order} from  "./Types"
 // import  { AxiosResponse }  from "axios";
 
 
-const rawBase = process.env.NEXT_PUBLIC_BASE_URL && process.env.NEXT_PUBLIC_BASE_URL.trim().length > 0
-  ? process.env.NEXT_PUBLIC_BASE_URL.trim()
-  : 'http://localhost:3000';
-
+const rawBase = (process.env.NEXT_PUBLIC_BASE_URL || '').trim();
 let BASE_URL: string;
 try {
-  const u = new URL(rawBase);
-  // force path to /api/v1
-  u.pathname = '/api/v1';
-  u.search = '';
-  u.hash = '';
-  BASE_URL = `${u.origin}${u.pathname}`;
+  const base = rawBase && /^https?:\/\//i.test(rawBase) ? rawBase : 'http://localhost:3000';
+  BASE_URL = new URL('/api/v1', base).toString().replace(/\/?$/, '');
 } catch {
-  // Fallback in case rawBase is not a valid URL
   BASE_URL = 'http://localhost:3000/api/v1';
 }
 
 // Log once to help diagnose 404s due to wrong base URL
 // eslint-disable-next-line no-console
-console.debug('[HttpClient] rawBase =', rawBase, ' -> normalized BASE_URL =', BASE_URL);
+console.debug('[HttpClient] rawBase =', rawBase || '(default http://localhost:3000)', '-> normalized BASE_URL =', BASE_URL);
 
 
 export async function getTicker(market: string): Promise<Ticker>{

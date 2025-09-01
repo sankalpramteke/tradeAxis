@@ -14,8 +14,6 @@ export default function TradeView({
 
   useEffect(() => {
     let cbId: string | null = null;
-    let depthCbId: string | null = null;
-    let tradeCbId: string | null = null;
     const init = async () => {
       let klineData: KLine[] = [];
       try {
@@ -65,42 +63,6 @@ export default function TradeView({
           })
         }, cbId)
         SignallingManager.getInstance().sendMessage({ method: "SUBSCRIBE", params: [`ticker.${market}`] })
-
-        // Fallback: drive chart from depth midpoint if ticker not available
-        depthCbId = `DEPTH-CHART-${market}`
-        SignallingManager.getInstance().registerCallback("depth", (d: any) => {
-          if(!chartManagerRef.current) return;
-          const bestBid = Number(d.b?.[0]?.[0] ?? d.bids?.[0]?.[0] ?? 0)
-          const bestAsk = Number(d.a?.[0]?.[0] ?? d.asks?.[0]?.[0] ?? 0)
-          const p = bestBid && bestAsk ? (bestBid + bestAsk)/2 : (bestBid || bestAsk)
-          if(!p) return;
-          chartManagerRef.current.update({
-            open: p,
-            high: p,
-            low: p,
-            close: p,
-            newCandleInitiated: false,
-            time: Date.now()
-          })
-        }, depthCbId)
-        SignallingManager.getInstance().sendMessage({ method: "SUBSCRIBE", params: [`depth.${market}`] })
-
-        // Also react to trades
-        tradeCbId = `TRADE-CHART-${market}`
-        SignallingManager.getInstance().registerCallback("trade", (t: any) => {
-          if(!chartManagerRef.current) return;
-          const p = Number(t.price ?? t.p ?? 0)
-          if(!p) return;
-          chartManagerRef.current.update({
-            open: p,
-            high: p,
-            low: p,
-            close: p,
-            newCandleInitiated: false,
-            time: Date.now()
-          })
-        }, tradeCbId)
-        SignallingManager.getInstance().sendMessage({ method: "SUBSCRIBE", params: [`trade.${market}`] })
       }
     };
     void init();
@@ -110,18 +72,6 @@ export default function TradeView({
         try {
           SignallingManager.getInstance().derigisterCallback("ticker", cbId)
           SignallingManager.getInstance().sendMessage({ method: "UNSUBSCRIBE", params: [`ticker.${market}`] })
-        } catch {}
-      }
-      if (depthCbId) {
-        try {
-          SignallingManager.getInstance().derigisterCallback("depth", depthCbId)
-          SignallingManager.getInstance().sendMessage({ method: "UNSUBSCRIBE", params: [`depth.${market}`] })
-        } catch {}
-      }
-      if (tradeCbId) {
-        try {
-          SignallingManager.getInstance().derigisterCallback("trade", tradeCbId)
-          SignallingManager.getInstance().sendMessage({ method: "UNSUBSCRIBE", params: [`trade.${market}`] })
         } catch {}
       }
       if (chartManagerRef.current) {

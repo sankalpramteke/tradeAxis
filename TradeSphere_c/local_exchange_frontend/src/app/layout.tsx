@@ -18,14 +18,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} min-h-screen bg-background text-foreground` }>
+      <body className={inter.className}>
         <Providers>
-            <div className="sticky top-0 z-40 header-glass">
-              <Appbar/>
-            </div>
-            <main className="mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-8 py-2">
-              {children}
-            </main>
+            <Appbar/>
+            {children}
           </Providers>
       </body>
     </html>

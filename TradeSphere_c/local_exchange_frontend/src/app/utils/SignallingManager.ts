@@ -86,6 +86,14 @@ export class SignallingManager{
                     console.log("Call Callback")
                     callback.callback(newDepth)
                 })
+                // Synthesize a ticker update from top-of-book to drive realtime when no native ticker
+                const bestBid = Array.isArray(newDepth.bids) && newDepth.bids.length > 0 ? parseFloat(newDepth.bids[0][0]) : NaN
+                const bestAsk = Array.isArray(newDepth.asks) && newDepth.asks.length > 0 ? parseFloat(newDepth.asks[0][0]) : NaN
+                const mid = (!isNaN(bestBid) && !isNaN(bestAsk)) ? (bestBid + bestAsk) / 2 : (!isNaN(bestBid) ? bestBid : (!isNaN(bestAsk) ? bestAsk : NaN))
+                if(!isNaN(mid)){
+                    const synthTicker: Partial<Ticker> = { lastPrice: String(mid) }
+                    ;(this.callbacks['ticker'] || []).forEach((cb)=> cb.callback(synthTicker))
+                }
             } else if(type == "trade"){
                 const newTrade = {
                     price: message.data.p,
