@@ -11,6 +11,7 @@ import {
     private lastUpdateTime: number = 0;
     private chart;
     private container: HTMLElement;
+    private ro: ResizeObserver | null = null;
     private tooltipEl: HTMLDivElement | null = null;
     private currentBar: {
       open: number | null;
@@ -79,6 +80,50 @@ import {
           time: (data.timestamp / 1000) as UTCTimestamp,
         }))
       );
+      try { this.chart.timeScale().scrollToRealTime(); } catch {}
+
+      // On first paint, ensure chart fits and sizes to container
+      requestAnimationFrame(() => {
+        try {
+          const w = this.container.clientWidth || 0;
+          const h = this.container.clientHeight || 0;
+          if (w > 0 && h > 0) {
+            this.chart.resize(w, h);
+          }
+          this.chart.timeScale().fitContent();
+          this.chart.timeScale().scrollToRealTime();
+        } catch {}
+      });
+
+      // Observe container resizing to keep chart sized correctly
+      const win: (Window & typeof globalThis) | null = (typeof window !== 'undefined') ? window : null;
+      if (win && 'ResizeObserver' in win) {
+        this.ro = new ResizeObserver((entries) => {
+          for (const entry of entries) {
+            const cr = entry.contentRect;
+            const w = Math.max(0, Math.floor(cr.width));
+            const h = Math.max(0, Math.floor(cr.height));
+            if (w && h) {
+              try { this.chart.resize(w, h); } catch {}
+            }
+          }
+        });
+        this.ro.observe(this.container);
+      } else {
+        // Fallback: resize on window resize
+        const onResize = () => {
+          try {
+            const w = this.container.clientWidth || 0;
+            const h = this.container.clientHeight || 0;
+            if (w && h) this.chart.resize(w, h);
+          } catch {}
+        };
+        if (win) {
+          win.addEventListener('resize', onResize);
+          // @ts-ignore
+          this.container.__onResize = onResize;
+        }
+      }
 
       // Add a TradingView-like floating tooltip that shows date/time and OHLC at crosshair
       this.createOrAttachTooltip();
@@ -133,6 +178,17 @@ import {
       if (this.tooltipEl && this.tooltipEl.parentElement) {
         this.tooltipEl.parentElement.removeChild(this.tooltipEl);
       }
+      // Cleanup resize observer/listener
+      try {
+        if (this.ro) {
+          this.ro.disconnect();
+          this.ro = null;
+        } else if ((this.container as any).__onResize) {
+          const win: (Window & typeof globalThis) | null = (typeof window !== 'undefined') ? window : null;
+          if (win) win.removeEventListener('resize', (this.container as any).__onResize);
+          (this.container as any).__onResize = null;
+        }
+      } catch {}
       this.chart.remove();
     }
 

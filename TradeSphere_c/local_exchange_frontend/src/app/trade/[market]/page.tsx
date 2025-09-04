@@ -7,11 +7,11 @@ import { useParams } from "next/navigation"
 export default function MarketsPage() {
     const { market } = useParams()
     return (
-        <div className="w-full flex flex-row ">
-                <div className="flex flex-col flex-1 ">
+        <div className="w-full flex flex-row overflow-x-hidden">
+                <div className="flex flex-col flex-1 min-w-0">
                     <MarketBar symbol={Array.isArray(market)? market[0] : market} />
-                    <div className="flex flex-row">
-                        <div className="flex flex-col flex-1">
+                    <div className="flex flex-row min-w-0">
+                        <div className="flex flex-col flex-1 min-w-0">
                             <TradeView market={Array.isArray(market)? market[0] : market} />
                         </div>
                         <div className="flex flex-col w-[300px] h-[85vh]">
